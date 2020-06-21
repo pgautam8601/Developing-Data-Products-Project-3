@@ -1,28 +1,28 @@
-# Coursera - Developing Data Products- Course Project
 
-# server.R file for the shiny app
-
-# This app was developed to help people choose the best car for their trip, 
-# using mtcars dataset, from [R]
+# This is the server logic for a Shiny web application.
+# You can find out more about building applications with Shiny here:
+#
+# http://shiny.rstudio.com
+#
 
 library(shiny)
-library(datasets)
-library(dplyr)
 
-shinyServer(function(input, output) {
+bmifunc <- function(height, weight){
+    bmi <- round((weight/(height/100)^2), digits =1) 
+}
 
-    # Show the cars that correspond to the filters
-    output$table <- renderDataTable({
-        disp_seq <- seq(from = input$disp[1], to = input$disp[2], by = 0.1)
-        hp_seq <- seq(from = input$hp[1], to = input$hp[2], by = 1)
-        data <- transmute(mtcars, Car = rownames(mtcars), MilesPerGallon = mpg, 
-                          GasolineExpenditure = input$dis/mpg*input$cost,
-                          Cylinders = cyl, Displacement = disp, Horsepower = hp, 
-                          Transmission = am)
-        data <- filter(data, GasolineExpenditure <= input$gas, Cylinders %in% input$cyl, 
-                       Displacement %in% disp_seq, Horsepower %in% hp_seq, Transmission %in% input$am)
-        data <- mutate(data, Transmission = ifelse(Transmission==0, "Automatic", "Manual"))
-        data <- arrange(data, GasolineExpenditure)
-        data
-    }, options = list(lengthMenu = c(5, 15, 30), pageLength = 30))
-})
+bmifunc2 <- function(height, weight){
+    bmi <- weight/(height/100)^2
+    if(bmi < 18.5) "Underweight"
+    else if(bmi >= 18.5 & bmi < 25) "Normal weight"
+    else if(bmi >= 25 & bmi < 30) "Overweight"
+    else "Obese"
+}
+
+
+shinyServer(
+    function(input, output){
+        output$bmi <- renderText({bmifunc(input$height, input$weight)})
+        output$diagnostic <- renderText({bmifunc2(input$height, input$weight)})
+    }
+)
